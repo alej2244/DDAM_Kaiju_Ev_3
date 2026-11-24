@@ -5,6 +5,9 @@ import retrofit2.http.*
 
 interface InventarioApiService {
 
+    @POST("api/inventario/login")
+    suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
+
     @GET("api/inventario/productos")
     suspend fun obtenerProductos(): List<ProductoDto>
 

@@ -13,6 +13,7 @@ import androidx.navigation.navArgument
 import com.example.kaijuinventory.ui.screens.DetalleProductoScreen
 import com.example.kaijuinventory.ui.screens.FormularioProductoScreen
 import com.example.kaijuinventory.ui.screens.ListaProductosScreen
+import com.example.kaijuinventory.ui.screens.LoginScreen
 import com.example.kaijuinventory.viewmodel.InventarioViewModel
 
 @Composable
@@ -22,12 +23,21 @@ fun AppNavigation(viewModel: InventarioViewModel) {
 
     NavHost(
         navController = navController,
-        startDestination = "lista",
+        startDestination = "login",
         enterTransition = { slideInHorizontally { it } + fadeIn() },
         exitTransition = { fadeOut() },
         popEnterTransition = { fadeIn() },
         popExitTransition = { slideOutHorizontally { it } + fadeOut() }
     ) {
+        composable("login") {
+            LoginScreen(
+                onLoginSuccess = { _, _ ->
+                    navController.navigate("lista") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                }
+            )
+        }
         composable("lista") {
             ListaProductosScreen(
                 viewModel = viewModel,

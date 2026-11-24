@@ -63,3 +63,15 @@ data class IndicadorDetalle(
     val nombre: String,
     val valor: Double
 )
+// DTOs para Inicio de Sesión
+data class LoginRequest(
+    val username: String,
+    val password: String
+)
+
+data class LoginResponse(
+    val id: Long? = null,
+    val username: String? = null,
+    val rol: String? = null,
+    val mensaje: String? = null
+)
