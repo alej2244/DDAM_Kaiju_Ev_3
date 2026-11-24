@@ -12,7 +12,7 @@ interface IndicadoresApiService {
 }
 
 object RetrofitClient {
-    private const val BASE_URL_BACKEND = "http://54.92.154.202:8080/"
+    private const val BASE_URL = "http://34.193.175.75:8080/"
     private const val BASE_URL_EXTERNA = "https://mindicador.cl/"
 
     private val client = OkHttpClient.Builder()
@@ -23,7 +23,7 @@ object RetrofitClient {
 
     val inventarioApi: InventarioApiService by lazy {
         Retrofit.Builder()
-            .baseUrl(BASE_URL_BACKEND)
+            .baseUrl(BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
