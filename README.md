@@ -1,46 +1,30 @@
-# Kaiju Inventario
+# Kaiju Inventario — Aplicación Móvil y Microservicios en AWS
 
-Aplicación Android para controlar el inventario de Kaiju. Permite registrar productos, llevar el stock al día con entradas y salidas, y avisa cuando un producto queda con pocas unidades para reponerlo a tiempo.
+Aplicación móvil Android desarrollada en **Kotlin y Jetpack Compose (Material 3)** para la gestión y trazabilidad en tiempo real del inventario de la organización **Kaiju**. Integra un microservicio REST propio en **Java + Spring Boot** desplegado en **AWS EC2**, consumo de API externa vía **Retrofit**, respaldo local con **Room (SQLite)**, pruebas unitarias con **JUnit 4 / MockK** y generación de **APK firmado**.
 
-Integrante: Alejandro Naranjo · Sección DSY1105 · Grupo 13
+**Integrante:** Alejandro Benjamín Naranjo Palma · Sección DSY1105 · Grupo 13
 
-## Funcionalidades
+---
 
-- Lista de productos con resumen del total y de los productos con stock bajo.
-- Formulario para crear y editar productos (código, nombre, categoría, precio, stock y stock mínimo) con validación por campo, íconos y mensajes de error.
-- Detalle del producto con registro de entradas y salidas e historial de movimientos.
-- Eliminación de productos con confirmación.
-- Persistencia local con SQLite (`SQLiteOpenHelper`): tablas `productos` y `movimientos` relacionadas con clave foránea, código único y transacción al registrar un movimiento.
-- Recursos nativos:
-  - Cámara para tomar la foto del producto.
-  - Notificación cuando un producto queda con stock bajo (pide permiso en Android 13 o superior).
-- Animaciones: transiciones entre pantallas, aparición de mensajes de error y alertas, cambio de color del stock y animación de los elementos de las listas.
-- Interfaz con Material 3 y tema claro/oscuro.
+## 1. Funcionalidades Principales
+* **Autenticación de personal autorizado:** Inicio de sesión validado contra microservicio Spring Boot (`POST /api/inventario/login`).
+* **Catálogo CRUD en tiempo real:** Creación, lectura, edición y eliminación de productos sincronizados con la nube AWS, con formulario validado por campo.
+* **Control de movimientos y trazabilidad:** Registro de entradas y salidas que actualiza automáticamente el stock disponible y conserva el historial por producto.
+* **Alertas de stock bajo y recursos nativos:** Notificaciones automáticas cuando un producto alcanza su stock mínimo y captura fotográfica con la cámara del dispositivo.
+* **Conversión de moneda en tiempo real (API Externa):** Consulta al valor del dólar observado desde `mindicador.cl` para mostrar precios referenciales en USD.
+* **Persistencia híbrida (Online / Offline):** Sincronización remota con Spring Boot y respaldo local mediante **Room (`KaijuDatabase`)** para consultas sin conexión.
 
-## Arquitectura
+---
 
-Patrón MVVM:
+## 2. Arquitectura del Proyecto (MVVM + Microservicios)
 
-```
+```text
 app/src/main/java/com/example/kaijuinventory/
-├── model/        Producto y Movimiento
-├── data/         KaijuDbHelper (SQLite)
-├── repository/   InventarioRepository
-├── validation/   Reglas de validación de los formularios
-├── viewmodel/    InventarioViewModel (estado con StateFlow)
-├── nativo/       Cámara (fotos) y notificaciones
-└── ui/           Pantallas, componentes, navegación y tema
-```
-
-## Cómo ejecutar
-
-1. Clonar el repositorio o descargarlo con GitHub Desktop.
-2. Abrir la carpeta del proyecto en Android Studio.
-3. Esperar a que Gradle sincronice las dependencias.
-4. Ejecutar la configuración `app` en un emulador o en un teléfono con Android 7.0 (API 24) o superior.
-
-Las pruebas unitarias de las validaciones se ejecutan con:
-
-```
-./gradlew test
-```
+├── data/          # Room (KaijuDatabase, InventarioDao, Entities)
+├── model/         # Modelos de dominio y DTOs (ApiModels, Producto, Movimiento)
+├── nativo/        # Cámara y gestor de notificaciones de stock bajo
+├── network/       # RetrofitClient, InventarioApiService, IndicadoresApiService
+├── repository/    # InventarioRepository (orquestador entre API AWS y Room)
+├── ui/            # Pantallas en Jetpack Compose (Material 3), navegación y tema
+├── validation/    # Reglas centralizadas de validación de formularios
+└── viewmodel/     # InventarioViewModel (gestión de estado reactivo con StateFlow)
