@@ -32,6 +32,7 @@ import com.example.kaijuinventory.ui.components.ChipStock
 import com.example.kaijuinventory.ui.components.FotoProducto
 import com.example.kaijuinventory.ui.components.formatearPrecio
 import com.example.kaijuinventory.viewmodel.InventarioViewModel
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +42,7 @@ fun ListaProductosScreen(
     onVerProducto: (Long) -> Unit
 ) {
     val productos by viewModel.productos.collectAsState()
+    val valorDolar by viewModel.valorDolar.collectAsState()
 
     Scaffold(
         topBar = {
@@ -65,7 +67,11 @@ fun ListaProductosScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                Resumen(total = productos.size, conStockBajo = productos.count { it.stockBajo })
+                Resumen(
+                    total = productos.size,
+                    conStockBajo = productos.count { it.stockBajo },
+                    valorDolar = valorDolar
+                )
             }
             if (productos.isEmpty()) {
                 item {
@@ -78,6 +84,7 @@ fun ListaProductosScreen(
             items(productos, key = { it.id }) { producto ->
                 ProductoItem(
                     producto = producto,
+                    valorDolar = valorDolar,
                     onClick = { onVerProducto(producto.id) },
                     modifier = Modifier.animateItem()
                 )
@@ -87,7 +94,8 @@ fun ListaProductosScreen(
 }
 
 @Composable
-private fun Resumen(total: Int, conStockBajo: Int) {
+private fun Resumen(total: Int, conStockBajo: Int, valorDolar: Double?) {
+    val textoDolar = valorDolar?.let { "$${it.toInt()}" } ?: "..."
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
@@ -99,7 +107,8 @@ private fun Resumen(total: Int, conStockBajo: Int) {
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             DatoResumen("Productos", total.toString())
-            DatoResumen("Con stock bajo", conStockBajo.toString())
+            DatoResumen("Stock bajo", conStockBajo.toString())
+            DatoResumen("Dólar (API)", textoDolar)
         }
     }
 }
@@ -113,7 +122,16 @@ private fun DatoResumen(titulo: String, valor: String) {
 }
 
 @Composable
-private fun ProductoItem(producto: Producto, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun ProductoItem(
+    producto: Producto,
+    valorDolar: Double?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val precioUsd = valorDolar?.takeIf { it > 0 }?.let {
+        String.format(Locale.US, " (≈ US$%.2f)", producto.precio / it)
+    } ?: ""
+
     Card(onClick = onClick, modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -124,7 +142,7 @@ private fun ProductoItem(producto: Producto, onClick: () -> Unit, modifier: Modi
             Column(modifier = Modifier.weight(1f)) {
                 Text(producto.nombre, style = MaterialTheme.typography.titleMedium)
                 Text("${producto.codigo} · ${producto.categoria}", style = MaterialTheme.typography.bodySmall)
-                Text(formatearPrecio(producto.precio), style = MaterialTheme.typography.bodyMedium)
+                Text("${formatearPrecio(producto.precio)}$precioUsd", style = MaterialTheme.typography.bodyMedium)
             }
             ChipStock(producto)
         }

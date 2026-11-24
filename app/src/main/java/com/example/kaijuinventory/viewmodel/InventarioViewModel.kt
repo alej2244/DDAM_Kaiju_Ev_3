@@ -3,7 +3,7 @@ package com.example.kaijuinventory.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.kaijuinventory.data.KaijuDbHelper
+import com.example.kaijuinventory.data.KaijuDatabase
 import com.example.kaijuinventory.model.Movimiento
 import com.example.kaijuinventory.model.Producto
 import com.example.kaijuinventory.model.TipoMovimiento
@@ -18,7 +18,8 @@ import kotlinx.coroutines.withContext
 
 class InventarioViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository = InventarioRepository(KaijuDbHelper(application))
+    private val dao = KaijuDatabase.getDatabase(application).inventarioDao()
+    private val repository = InventarioRepository(dao)
 
     private val _productos = MutableStateFlow<List<Producto>>(emptyList())
     val productos: StateFlow<List<Producto>> = _productos.asStateFlow()
@@ -26,9 +27,13 @@ class InventarioViewModel(application: Application) : AndroidViewModel(applicati
     private val _movimientos = MutableStateFlow<List<Movimiento>>(emptyList())
     val movimientos: StateFlow<List<Movimiento>> = _movimientos.asStateFlow()
 
+    private val _valorDolar = MutableStateFlow<Double?>(null)
+    val valorDolar: StateFlow<Double?> = _valorDolar.asStateFlow()
+
     init {
         viewModelScope.launch(Dispatchers.IO) {
             _productos.value = repository.obtenerProductos()
+            _valorDolar.value = repository.obtenerValorDolar()
         }
     }
 
@@ -41,7 +46,6 @@ class InventarioViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    // alTerminar recibe null si se guardó, o el mensaje de error
     fun guardarProducto(producto: Producto, alTerminar: (String?) -> Unit) {
         viewModelScope.launch {
             val error = withContext(Dispatchers.IO) {
@@ -71,7 +75,7 @@ class InventarioViewModel(application: Application) : AndroidViewModel(applicati
             _movimientos.value = repository.obtenerMovimientos(producto.id)
 
             if (nuevoStock <= producto.stockMinimo) {
-                Notificaciones.avisarStockBajo(getApplication<Application>(),producto.nombre, nuevoStock)
+                Notificaciones.avisarStockBajo(getApplication<Application>(), producto.nombre, nuevoStock)
             }
         }
     }
